@@ -1,11 +1,11 @@
 import cv2
 import mediapipe as mp
-import time
+import time 
 
 # MediaPipe Tasks configuration
 BaseOptions = mp.tasks.BaseOptions
 HandLandmarker = mp.tasks.vision.HandLandmarker
-HandLandmarkerOptions = mp.tasks.vision.HandLandmarkerOptions
+HandLandmarkerOptions = mp.tasks.vision.HandLandmarkerOptions 
 RunningMode = mp.tasks.vision.RunningMode
 
 MODEL_PATH = "hand_landmarker.task"
