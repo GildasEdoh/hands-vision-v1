@@ -1,6 +1,6 @@
 import cv2
 import mediapipe as mp
-import time 
+import time
 
 # MediaPipe Tasks configuration
 BaseOptions = mp.tasks.BaseOptions
