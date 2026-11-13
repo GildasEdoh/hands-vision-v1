@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 
 @dataclass
-class land_mark:
+class Landmark:
     x_: float
     y_: float
     z_: float
     visibility: any
-    presence: None
+    presence: str | None
     name: str | None

@@ -1,0 +1,1 @@
+from .constants import MODEL_PATH, HAND_CONNECTIONS
