@@ -1,14 +1,15 @@
 import threading
 import time
 import cv2
-import psutil
-from datetime import datetime
-import pandas as pd
 from queue import Queue
+from handvision.my_utils import record_metrics, save_report
+from handvision.vision.draw_manager import DrawManager
+from handvision.detection import run_detection
 
 class StreamCaptureManager:
     def __init__(self):
         self.video_benchmark_metrics = self.ini_benchmark_metrics()
+        self.drawer = DrawManager()
         self.ini_params() # Init other detection params
 
     def ini_benchmark_metrics(self):
@@ -22,7 +23,6 @@ class StreamCaptureManager:
 
     def ini_params(self):
         self.visualisation_start_frame = 0
-        self.start_time = 0.0
         self.capture_queue = Queue(maxsize=500)
         self.result_queue = Queue(maxsize=500)
         self.total_frame = Queue(maxsize=500)
@@ -34,7 +34,6 @@ class StreamCaptureManager:
 
         self.frame_size = (0, 0)
         self.start_time = 0.0
-        self.capture_start_time = 0.0
         self.visualisation_time_elapsed = 0.0 # Total time until the visualisation starts
         self.video_fps = 0
         self.stream_fps = 30 # Regulated fps for stream and visualisation : 1 frame every 50ms
@@ -81,20 +80,30 @@ class StreamCaptureManager:
         while self.running:
             if self.capture_queue.empty():
                 continue
-            else : 
+            else :
                 if not self.capture_queue.empty():
                     frame, frame_id = self.capture_queue.get()
                     frame_start = time.time()
+
+                    landmarks = run_detection(frame)
+                    print('landmarks = ', landmarks)
+
+                    drawed_frame = self.drawer.draw_general_infos(frame, self.frame_size, self.video_fps, self.visualisation_time_elapsed)
                     
                     # Starting model detection
                     detection_start_time = time.time()
                     
                     # Saving metrics
-                    self.record_metrics(frame_start, frame_id)
+                    (curr_date, frame_time, cpu, memory, frame_number) = record_metrics(frame_start, frame_id)
+                    self.video_benchmark_metrics['timestamps'].append(curr_date)
+                    self.video_benchmark_metrics['frame_times'].append(frame_time)
+                    self.video_benchmark_metrics['cpu_usage'].append(cpu)
+                    self.video_benchmark_metrics['memory_usage'].append(memory)
+                    self.video_benchmark_metrics['frame_id'].append(frame_number)
                     
                     # Add to result queue
                     if not self.result_queue.full():
-                        self.result_queue.put((frame, frame_id))
+                        self.result_queue.put((drawed_frame, frame_id))
                         
                     if self.result_queue.full():
                         self.result_queue.get_nowait()
@@ -194,52 +203,4 @@ class StreamCaptureManager:
         cv2.destroyAllWindows()
         
         # Save the report
-        self.save_report()
-        # save_video(list(self.total_frame.queue), save_path, 30)
-
-
-    def record_metrics(self, frame_start, frame_number):
-        """
-        Record the metric per frame
-        """
-        # Treatment time
-        frame_time = time.time() - frame_start
-        fps = 1 / frame_time if frame_time > 0 else 0
-        # System Metrics
-        cpu = psutil.cpu_percent()
-        memory = psutil.virtual_memory().percent
-        # Save
-        self.video_benchmark_metrics['timestamps'].append(datetime.now())
-        self.video_benchmark_metrics['frame_times'].append(frame_time)
-        self.video_benchmark_metrics['cpu_usage'].append(cpu)
-        self.video_benchmark_metrics['memory_usage'].append(memory)
-        self.video_benchmark_metrics['frame_id'].append(frame_number)
-    
-    def save_report(self):
-        """
-        Calculate the mean of metrics properties
-        """
-        total_time = time.time() - self.start_time
-        df = pd.DataFrame(self.video_benchmark_metrics)
-        
-        # Mean estimation
-        avg_fps = 1 / df['frame_times'].mean()
-        avg_cpu = df['cpu_usage'].mean()
-        avg_mem = df['memory_usage'].mean()
-        
-        # Price estimation
-        cost_per_hour = 0.50  # $ par heure pour un instance type
-        cost_per_minute = (cost_per_hour / 60) * (total_time / 60)
-        
-        # Saving results
-        # with open("benchmark_report.txt", "w") as f:
-        #     f.write(f"=== BENCHMARK REPORT ===\n")
-        #     f.write(f"Durée totale: {total_time:.2f} secondes\n")
-        #     f.write(f"FPS moyen: {avg_fps:.2f}\n")
-        #     f.write(f"CPU moyen: {avg_cpu:.2f}%\n")
-        #     f.write(f"Mémoire moyenne: {avg_mem:.2f}%\n")
-        #     f.write(f"Coût estimé: ${cost_per_minute:.4f}\n")
-        #     f.write(f"\nDétails par frame:\n")
-        #     df.to_string(f, index=False)
-        # df.to_csv("benchmark_data.csv", index=False)
-        print("Rapport de benchmark sauvegardé.")
+        save_report(self.video_benchmark_metrics)

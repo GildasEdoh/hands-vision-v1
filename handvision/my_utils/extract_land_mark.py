@@ -1,9 +1,13 @@
-from interfaces import Landmark
+from handvision.interfaces import Landmark
 from typing import Any, List, Dict, Tuple
 
 def get_land_marks(results) -> List[Landmark]:
     mediapie_land_marks = results.hand_landmarks
     marks = []
+    
+    if not mediapie_land_marks:
+        return marks
+    
     for index, landmarks in enumerate(
         mediapie_land_marks
     ):
