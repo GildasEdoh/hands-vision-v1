@@ -1,4 +1,7 @@
-MODEL_PATH = "hand_landmarker.task"
+from pathlib import Path
+
+
+MODEL_PATH = Path(__file__).resolve().parent.parent / "hand_landmarker.task"
 
 # Hand skeleton connections
 HAND_CONNECTIONS = [

@@ -1,69 +1,82 @@
+from typing import Sequence
+
 import cv2
+import numpy as np
 
-class DrawManager:
+from handvision.interfaces import Landmark
+from handvision.my_utils.land_mark_draw import (
+    draw_no_hands_results,
+)
+from handvision.modules.base import VisionModule
 
-    def __init__(self):
-        pass
 
-    def draw_general_infos(self, frame, frame_size, video_fps, time_elapsed, landmarks):
-        """
-        Draw a recangle which contains the number of fps and the number of persons detected
-        """
-        if len(landmarks) == 0:
-            cv2.putText(
-                frame,
-                "No hand detected",
-                (200, 400),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.8,
-                (0, 0, 255),
-                2
-            )
+class DrawManager(VisionModule):
+
+    def process_frame(
+        self,
+        frame: np.ndarray,
+        landmarks: Sequence[Landmark],
+        *,
+        fps: float,
+        elapsed_seconds: float,
+    ) -> np.ndarray:
+        height, width = frame.shape[:2]
 
         font = cv2.FONT_HERSHEY_SIMPLEX
         font_scale = 0.5
         thickness = 2
         alpha = 0.8
 
-        fps_label = f"fps : {round(video_fps)}"
-        elapsed_time_label = f"tps : {time_elapsed:.3f} scs"
-        frame_width = frame_size[0]
-        frame_height = frame_size[1]
-        rect_width = int(frame_width * 0.6)
-        rect_hight = int(frame_height * 0.1)
-
-        fps_label_x, fps_label_y = 20, 20
-        time_x, time_y = fps_label_x + self._get_label_width(fps_label, font, font_scale, thickness) + 10, fps_label_y 
-
-        text_color = (0, 0, 255)  
-        box_color = (235, 206, 135)
-
-        self.draw_top_labels(frame, fps_label, fps_label_x, fps_label_y, text_color, font, font_scale, thickness)
-        self.draw_top_labels(frame, elapsed_time_label, time_x, time_y, text_color, font, font_scale, thickness)
-
-        # Drawing the container rectangle
-        overlay = frame.copy() # Copy the frame
+        overlay = frame.copy()
         cv2.rectangle(
-            frame,
+            overlay,
             (0, 0),
-            (rect_width, rect_hight),
-            box_color,
-            thickness=-1
+            (int(width * 0.6), int(height * 0.1)),
+            (235, 206, 135),
+            thickness=-1,
         )
-        cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame) # Add overlay frame the the real frame
+        cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
 
+        fps_label = f"FPS: {fps:.1f}"
+        elapsed_time_label = f"Elapsed: {elapsed_seconds:.1f} s"
+        text_color = (0, 0, 255)
+        self.draw_top_labels(frame, fps_label, 20, 25, text_color, font, font_scale, thickness)
+        time_x = 20 + self._get_label_width(fps_label, font, font_scale, thickness) + 10
+        self.draw_top_labels(
+            frame,
+            elapsed_time_label,
+            time_x,
+            25,
+            text_color,
+            font,
+            font_scale,
+            thickness,
+        )
+
+        if not landmarks:
+            draw_no_hands_results(frame)
         return frame
-
-
 
     def _get_label_width(self, label, font, font_scale, thickness):
         (text_width, text_height), _ = cv2.getTextSize(
-        label, font, font_scale, thickness)
+            label,
+            font,
+            font_scale,
+            thickness,
+        )
         return text_width
 
-    
-    def draw_top_labels(self, frame, fps_label, fps_label_x, fps_label_y, text_color, font, fontscale, thickness):
-        # Writing the fps
+    def draw_top_labels(
+        self,
+        frame,
+        fps_label,
+        fps_label_x,
+        fps_label_y,
+        text_color,
+        font,
+        fontscale,
+        thickness,
+    ):
         cv2.putText(
             frame,
             fps_label,
@@ -71,8 +84,5 @@ class DrawManager:
             font,
             fontscale,
             text_color,
-            thickness
+            thickness,
         )
-
-    def draw_land_skels():
-        pass

@@ -1,116 +1,89 @@
 # Hands Vision
 
-Hands Vision est un projet expérimental de vision par ordinateur qui vise à
-permettre d'interagir avec un ordinateur à l'aide des mains, sans contact.
-L'objectif est de construire le projet progressivement : une base commune de
-suivi des mains, puis plusieurs expériences indépendantes que l'on pourra
-lancer et faire évoluer séparément.
-
-## Objectifs
-
-- Détecter et suivre les mains à partir d'une webcam.
-- Réutiliser ce suivi dans plusieurs expériences indépendantes.
-- Garder chaque expérience suffisamment isolée pour pouvoir la développer,
-  tester et lancer sans affecter les autres.
-- Ajouter des fonctionnalités au fil du temps, par exemple :
-  - **Coloriage sans contact** : sélectionner une couleur et remplir une zone
-    en approchant un doigt de cette zone à l'écran.
-  - **Dessin vers texte** : interpréter un dessin réalisé par l'utilisateur
-    et proposer une transcription textuelle.
-
-Ces fonctionnalités sont des objectifs, pas des fonctions déjà disponibles.
-
-## État actuel
-
-Le prototype actuel, dans `main.py`, ouvre la webcam, détecte jusqu'à deux
-mains avec MediaPipe, affiche les repères des mains et imprime les coordonnées
-du bout de l'index. Il s'agit du point de départ du projet ; il n'est pas encore
-réparti dans la nouvelle architecture.
-
-Le modèle MediaPipe `hand_landmarker.task` doit rester disponible à la racine
-pour ce prototype. Le dossier `assets/models/` est prévu pour accueillir les
-modèles quand le code sera organisé autour du nouveau paquet.
-
-## Architecture cible
-
-```text
-hands-vision-v1/
-├── handvision/
-│   ├── __init__.py
-│   ├── core/
-│   │   └── __init__.py
-│   ├── vision/
-│   │   └── __init__.py
-│   ├── interfaces/
-│   │   └── __init__.py
-│   └── modules/
-│       ├── __init__.py
-│       ├── coloring/
-│       │   └── __init__.py
-│       └── drawing_to_text/
-│           └── __init__.py
-├── assets/
-│   └── models/
-│       └── .gitkeep
-├── tests/
-│   └── .gitkeep
-├── main.py
-├── hand_landmarker.task
-└── Readme.md
-```
-
-### Rôle des dossiers
-
-- `handvision/core/` : éléments communs aux expériences, tels que la
-  configuration et les données partagées.
-- `handvision/vision/` : capture vidéo, détection des mains et traitement des
-  repères.
-- `handvision/interfaces/` : interactions avec les entrées et sorties,
-  notamment les fenêtres et les commandes utilisateur.
-- `handvision/modules/` : expériences autonomes. Chaque fonctionnalité possède
-  son propre sous-dossier et pourra avoir son propre point de lancement.
-- `assets/models/` : modèles nécessaires aux fonctionnalités du projet.
-- `tests/` : tests automatisés, à ajouter avec les premiers composants.
-- `main.py` : point d'entrée historique du prototype actuel, conservé pendant
-  la transition.
-
-Les fichiers `__init__.py` posent les frontières des paquets Python. Les
-nouveaux modules ne sont pas encore implémentés ni exécutables : leurs points
-d'entrée seront ajoutés lorsqu'une première fonctionnalité sera développée.
+Hands Vision est une application Python de vision par ordinateur. Elle partage
+un pipeline webcam et MediaPipe entre des modules d'expérience indépendants.
+Le premier module contrôle le volume système Windows avec des gestes de la main.
+Les expériences de coloriage et de dessin vers texte restent à développer.
 
 ## Prérequis
 
-- Python 3, dans une version compatible avec MediaPipe et OpenCV.
-- Une webcam accessible depuis l'ordinateur.
-- Les bibliothèques OpenCV et MediaPipe.
-- Le fichier de modèle `hand_landmarker.task` à la racine pour le prototype
-  actuel.
+- Python compatible avec les versions installées de MediaPipe et OpenCV.
+- Une webcam accessible.
+- Windows pour contrôler le volume système.
+- Le modèle `hand_landmarker.task` à la racine du dépôt.
 
-## Lancer le prototype actuel
-
-Depuis la racine du dépôt, installer les dépendances si nécessaire, puis lancer
-le point d'entrée existant :
+Installez les dépendances du projet puis lancez l'application depuis la racine :
 
 ```powershell
-python -m pip install opencv-python mediapipe
+python -m pip install -r requirements.txt
 python main.py
 ```
 
-La fenêtre vidéo se ferme avec la touche `Q`. Si la webcam n'est pas accessible
-ou si le modèle est absent, vérifier les permissions caméra et la présence du
-fichier `hand_landmarker.task`.
+Appuyez sur `Q` ou `Échap` pour quitter. L'application signale explicitement
+si la webcam ou le modèle ne peut pas être ouvert.
 
-## Développement progressif
+## Module de contrôle du volume
 
-1. Stabiliser la capture vidéo et le suivi des mains dans les composants
-   communs.
-2. Créer le premier module d'expérience dans son dossier dédié.
-3. Ajouter à ce module un point de lancement indépendant et documenter sa
-   commande ici.
-4. Ajouter des tests pour les comportements qui peuvent être vérifiés sans
-   webcam.
-5. Répéter cette démarche pour les expériences suivantes, sans coupler leur
-   logique entre elles.
+Le volume est réglé à l'aide du volume principal de Windows :
 
-Lorsqu'un module sera prêt, sa méthode de lancement, ses dépendances propres et
-ses limites devront être documentées dans cette page.
+1. Touchez l'icône de volume en haut à droite avec le bout de l'index pour
+   afficher ou masquer la barre.
+2. Variez l'écartement entre le **pouce et l'index** : rapprochez-les pour
+   diminuer le volume et éloignez-les pour l'augmenter. Il n'est pas nécessaire
+   de placer les doigts sur la barre.
+
+La barre verticale affiche le niveau, mais sa position ne contrôle pas le
+volume. Les instructions et le pourcentage restent dans un panneau séparé.
+
+## Organisation actuelle
+
+```text
+handvision/
+├── core/
+│   └── timing.py
+├── detection/
+│   └── mediapipe_detector.py
+├── interfaces/
+│   └── land_mark.py
+├── modules/
+│   ├── base.py
+│   └── volume_control/
+│       ├── audio.py
+│       ├── gesture.py
+│       └── module.py
+├── my_utils/
+│   ├── detections_metrics.py
+│   ├── extract_land_mark.py
+│   └── land_mark_draw.py
+└── vision/
+    ├── draw_manager.py
+    ├── frame_queue.py
+    └── stream_capture_manager.py
+```
+
+- `core/` fournit les utilitaires indépendants des périphériques, notamment
+  l'horloge monotone requise par MediaPipe en mode vidéo.
+- `detection/` encapsule le modèle MediaPipe et sa durée de vie.
+- `vision/` orchestre la capture, le traitement asynchrone et l'affichage.
+- `my_utils/` contient les conversions de repères et les métriques.
+- `modules/base.py` définit le contrat partagé des expériences.
+- `modules/volume_control/` sépare le geste, le contrôle audio Windows et
+  l'affichage du module de volume.
+
+Les files de capture et de résultat ne conservent que l'image la plus récente :
+les images en attente sont remplacées plutôt que de laisser s'accumuler un
+retard. Les mesures de temps de file, détection, dessin et affichage sont
+résumées dans les journaux à l'arrêt.
+
+## Développement et tests
+
+Les tests automatisés ne nécessitent pas de webcam :
+
+```powershell
+python -m unittest discover -s tests
+```
+
+Pour ajouter une expérience, implémentez `VisionModule.process_frame` et
+`close`, puis passez cette instance au `StreamCaptureManager`. La capture, la
+détection, le dessin commun des repères et l'arrêt restent gérés par le pipeline
+partagé.
