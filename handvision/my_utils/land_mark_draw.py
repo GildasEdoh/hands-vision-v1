@@ -39,3 +39,14 @@ def draw_hand_landmarks(frame, landmarks, hand_connections):
         (255, 0, 0),
         -1
     )
+
+def draw_no_hands_results(frame):
+    cv2.putText(
+        frame,
+        "No hand detected",
+        (20, 40),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.8,
+        (0, 0, 255),
+        2
+    )

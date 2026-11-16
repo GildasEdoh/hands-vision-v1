@@ -35,7 +35,13 @@ def run_detection(frame) -> List[Landmark]:
 
     mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
     timestamp_ms = time.monotonic_ns() // 1_000_000
-    results = global_handlandmarker.detect_async(mp_image, timestamp_ms)
+    results = global_handlandmarker.detect_for_video(mp_image, timestamp_ms)
+
+    print('global_handlandmarker = ', global_handlandmarker)
+
+    if not results or not results.hand_landmarks:
+        return []
+    
     print('results = ', results)
     landmarks = get_land_marks(results)
     return landmarks

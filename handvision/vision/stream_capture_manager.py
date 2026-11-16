@@ -88,7 +88,7 @@ class StreamCaptureManager:
                     landmarks = run_detection(frame)
                     print('landmarks = ', landmarks)
 
-                    drawed_frame = self.drawer.draw_general_infos(frame, self.frame_size, self.video_fps, self.visualisation_time_elapsed)
+                    drawed_frame = self.drawer.draw_general_infos(frame, self.frame_size, self.video_fps, self.visualisation_time_elapsed, landmarks)
                     
                     # Starting model detection
                     detection_start_time = time.time()
@@ -203,4 +203,4 @@ class StreamCaptureManager:
         cv2.destroyAllWindows()
         
         # Save the report
-        save_report(self.video_benchmark_metrics)
+        save_report(self.video_benchmark_metrics, self.start_time)

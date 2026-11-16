@@ -5,10 +5,21 @@ class DrawManager:
     def __init__(self):
         pass
 
-    def draw_general_infos(self, frame, frame_size, video_fps, time_elapsed):
+    def draw_general_infos(self, frame, frame_size, video_fps, time_elapsed, landmarks):
         """
         Draw a recangle which contains the number of fps and the number of persons detected
         """
+        if len(landmarks) == 0:
+            cv2.putText(
+                frame,
+                "No hand detected",
+                (200, 400),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.8,
+                (0, 0, 255),
+                2
+            )
+
         font = cv2.FONT_HERSHEY_SIMPLEX
         font_scale = 0.5
         thickness = 2

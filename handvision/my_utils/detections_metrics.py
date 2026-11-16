@@ -15,11 +15,11 @@ def record_metrics(frame_start, frame_number):
     memory = psutil.virtual_memory().percent
     return (datetime.now(), frame_time, cpu, memory, frame_number)
 
-def save_report(self, video_benchmark_metrics):
+def save_report(video_benchmark_metrics, start_time):
     """
     Calculate the mean of metrics properties
     """
-    total_time = time.time() - self.start_time
+    total_time = time.time() - start_time
     df = pd.DataFrame(video_benchmark_metrics)
     
     # Mean estimation
