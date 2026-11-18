@@ -19,8 +19,31 @@ python -m pip install -r requirements.txt
 python main.py
 ```
 
+Pour lancer le mini-jeu interactif de tir aux ballons :
+
+```powershell
+python launch_vision_game.py
+```
+
 Appuyez sur `Q` ou `Échap` pour quitter. L'application signale explicitement
 si la webcam ou le modèle ne peut pas être ouvert.
+
+## Mini-jeu de tir aux ballons (Balloon Popper Vision)
+
+Le jeu se contrôle entièrement sans contact physique :
+
+1. **Visée (Pointeur Laser) :** Déplacez votre main pour pointer le bout de
+   votre **index (Landmark #8)** sur les ballons qui s'élèvent à l'écran. Un
+   réticule laser dynamique suit votre doigt.
+2. **Tir (Geste de pincement) :** Rapprochez vivement le **pouce (Landmark #4)**
+   et l'index. Dès que la distance descend sous le seuil, un tir laser éclate le
+   ballon ciblé avec des effets de particules colorées, score et bruitages.
+3. **Ergonomie et bonus :**
+   - **Ballons dorés :** Plus rapides et plus petits, ils octroient des points bonus (+30 pts).
+   - **Combos :** Enchaînez les tirs réussis en moins de 1.8s pour faire grimper le multiplicateur de combo (`x2`, `x3`...).
+   - **Vies :** Si un ballon s'échappe par le haut de l'écran, vous perdez une vie (3 vies au départ).
+   - **Bouton virtuel interactif :** Sur les écrans d'accueil et de Game Over, visez le bouton avec l'index et pincez pour lancer ou relancer la partie sans toucher au clavier !
+   - **Raccourcis :** `R` pour rejouer, `H` pour afficher le squelette de la main, `S` pour couper/activer le son, `Q`/`Échap` pour quitter.
 
 ## Module de contrôle du volume
 
@@ -43,6 +66,13 @@ handvision/
 │   └── timing.py
 ├── detection/
 │   └── mediapipe_detector.py
+├── game/
+│   ├── balloon.py
+│   ├── game_engine.py
+│   ├── module.py
+│   ├── sound.py
+│   ├── target_manager.py
+│   └── visual_effects.py
 ├── interfaces/
 │   └── land_mark.py
 ├── modules/

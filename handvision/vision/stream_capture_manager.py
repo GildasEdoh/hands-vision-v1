@@ -25,9 +25,11 @@ class StreamCaptureManager:
         self,
         detector_factory: Optional[Callable] = None,
         module: Optional[VisionModule] = None,
+        window_title: str = "Real time detection",
     ):
         self._detector_factory = detector_factory
         self.module = module if module is not None else DrawManager()
+        self.window_title = window_title
         self._stop_event = threading.Event()
         self._module_closed = threading.Event()
         self._worker_errors = Queue(maxsize=1)
@@ -143,7 +145,8 @@ class StreamCaptureManager:
                 landmarks = detector.detect(frame)
                 detection_finished_at = time.perf_counter()
                 if landmarks:
-                    draw_hand_landmarks(frame, landmarks)
+                    # draw_hand_landmarks(frame, landmarks)
+                    pass
                 else:
                     draw_no_hands_results(frame)
                 rendered_frame = self.module.process_frame(
@@ -180,6 +183,8 @@ class StreamCaptureManager:
             if key in (ord("q"), 27):
                 self._stop_event.set()
                 break
+            if hasattr(self.module, "handle_key") and key != 255:
+                self.module.handle_key(key)
 
             try:
                 frame, frame_id, captured_at = self.result_queue.get_nowait()
@@ -193,7 +198,7 @@ class StreamCaptureManager:
         captured_at: float,
     ) -> None:
         self.video_frame_count_visualized += 1
-        cv2.imshow("Real time detection", frame)
+        cv2.imshow(self.window_title, frame)
         self.metrics.record_display(captured_at, time.perf_counter())
 
     def _elapsed_time(self) -> float:
